@@ -5,34 +5,244 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ValetJS Demo</title>
   <style>
-    body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; }
-    .highlight { padding: 1rem; margin: 1rem 0; }
-    .highlighted { background: #fef3c7; border-left: 4px solid #f59e0b; }
-    .notification-banner { display: none; padding: 0.75rem 1rem; margin: 0.5rem 0; background: #eff6ff; border-left: 4px solid #3b82f6; }
-    button { padding: 0.5rem 1rem; font-size: 1rem; cursor: pointer; margin: 0.5rem 0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+      color: #1a1a2e;
+      background: #f8f9fb;
+      line-height: 1.5;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 3rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid #e2e4e9;
+    }
+
+    header h1 {
+      font-size: 2.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    header p {
+      margin-top: 0.75rem;
+      color: #5c5f6a;
+      font-size: 1.05rem;
+      max-width: 540px;
+      margin-inline: auto;
+    }
+
+    header a {
+      color: #6366f1;
+      text-decoration: none;
+    }
+    header a:hover { text-decoration: underline; }
+
+    section {
+      background: #fff;
+      border: 1px solid #e2e4e9;
+      border-radius: 10px;
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+
+    section h2 {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #8b8d97;
+      margin-bottom: 1rem;
+    }
+
+    .highlight {
+      padding: 1rem;
+      border-radius: 6px;
+      background: #f1f2f4;
+      color: #5c5f6a;
+      transition: all 0.25s ease;
+    }
+
+    .highlighted {
+      background: #fef3c7;
+      border-left: 4px solid #f59e0b;
+      color: #92400e;
+    }
+
+    .notification-banner {
+      display: none;
+      padding: 0.75rem 1rem;
+      margin-bottom: 0.75rem;
+      background: #eef2ff;
+      border-left: 4px solid #6366f1;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.9rem;
+      color: #3730a3;
+    }
+
+    button {
+      padding: 0.5rem 1rem;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      background: #fff;
+      color: #374151;
+      transition: all 0.15s ease;
+      margin-top: 0.75rem;
+    }
+    button:hover {
+      background: #f3f4f6;
+      border-color: #9ca3af;
+    }
+    button:active {
+      background: #e5e7eb;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    #spawn-target {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+
+    .components-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+    }
+
+    .definition {
+      font-family: 'Times New Roman', Georgia, serif;
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+    .definition-word {
+      font-size: 1.35rem;
+      font-weight: 700;
+    }
+    .definition-pronunciation {
+      color: #6b7280;
+      font-style: italic;
+      margin-left: 0.4rem;
+      font-size: 0.95rem;
+    }
+    .definition-pos {
+      display: inline-block;
+      font-style: italic;
+      color: #6b7280;
+      font-size: 0.85rem;
+      margin-top: 0.25rem;
+    }
+    .definition-text {
+      margin-top: 0.35rem;
+      font-size: 1rem;
+      color: #374151;
+    }
+    .definition-text::before {
+      content: '1. ';
+      font-weight: 600;
+      color: #9ca3af;
+    }
+    .definition-example {
+      margin-top: 0.25rem;
+      font-style: italic;
+      color: #6b7280;
+      font-size: 0.9rem;
+      padding-left: 1rem;
+    }
+    .definition-example::before {
+      content: '"';
+    }
+    .definition-example::after {
+      content: '"';
+    }
+
+    @media (max-width: 560px) {
+      .components-row { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
-  <h1>ValetJS Demo</h1>
+  <header>
+    <h1>ValetJS</h1>
+    <p>
+      Lightweight directive and component lifecycle management for the DOM.
+      Attach behavior to elements with directives, lazy-load anything, and
+      communicate across components with a built-in event system — all driven
+      by a single MutationObserver.
+    </p>
+    <p style="margin-top: 0.5rem;">
+      <a href="https://github.com/xposedbones/valetjs">GitHub</a>
+    </p>
+  </header>
 
-  <h2>Directive Communication</h2>
-  <div id="box" class="highlight">This box is controlled by the Highlight directive.</div>
-  <button class="highlight-toggle" data-target="#box">Toggle Highlight</button>
+  <div class="definition">
+    <div>
+      <span class="definition-word">directive</span>
+      <span class="definition-pronunciation">/dɪˈrɛk.tɪv/</span>
+    </div>
+    <span class="definition-pos">noun, software</span>
+    <p class="definition-text">A reusable piece of behavior that attaches itself to an existing DOM element, matched by a CSS selector, managing its own lifecycle without altering the element's markup.</p>
+    <p class="definition-example">She wrote a <strong>directive</strong> that lazy-loads images as they scroll into view.</p>
+    <p class="definition-example">Holy shit, that <strong>directive</strong> is cool af.</p>
+  </div>
 
-  <h2>Event System</h2>
-  <div class="notification-banner"></div>
-  <button class="notification-sender" data-message="Item added to cart">Add to cart</button>
-  <button class="notification-sender" data-message="Settings saved">Save settings</button>
+  <section>
+    <h2>Directive Communication</h2>
+    <div id="box" class="highlight">
+      This box is managed by the <strong>Highlight</strong> directive. The button
+      below uses <code>Valet.getDirective()</code> to call its <code>toggle()</code> method.
+    </div>
+    <button class="highlight-toggle" data-target="#box">Toggle Highlight</button>
+  </section>
 
-  <h2>Lazy-loaded Component</h2>
-  <button class="spawner">Spawn User Card</button>
-  <div id="spawn-target"></div>
+  <section>
+    <h2>Event System</h2>
+    <div class="notification-banner"></div>
+    <p style="color: #5c5f6a; font-size: 0.9rem; margin-bottom: 0.5rem;">
+      Two directives that don't know about each other, communicating through <code>Valet.emit()</code> and <code>Valet.on()</code>.
+    </p>
+    <div class="btn-group">
+      <button class="notification-sender" data-message="Item added to cart">Add to cart</button>
+      <button class="notification-sender" data-message="Settings saved">Save settings</button>
+    </div>
+  </section>
 
-  <h2>Native Web Component</h2>
-  <progress-bar value="65"></progress-bar>
+  <section>
+    <h2>Lazy-loaded Component</h2>
+    <p style="color: #5c5f6a; font-size: 0.9rem; margin-bottom: 0.5rem;">
+      The <code>&lt;user-card&gt;</code> component is lazy-loaded. Clicking the button creates
+      a new element — the MutationObserver picks it up automatically.
+    </p>
+    <button class="spawner">Spawn User Card</button>
+    <div id="spawn-target"></div>
+  </section>
 
-  <h2>Lit Web Component: MyCounter</h2>
-  <my-counter></my-counter>
+  <div class="components-row">
+    <section>
+      <h2>Native Web Component</h2>
+      <progress-bar value="65"></progress-bar>
+    </section>
+
+    <section>
+      <h2>Lit Web Component</h2>
+      <my-counter></my-counter>
+    </section>
+  </div>
 
   <script type="module" src="/main.ts"></script>
 </body>
