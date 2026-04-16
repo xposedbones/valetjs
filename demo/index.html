@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ValetJS Demo</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; }
+    .highlight { padding: 1rem; margin: 1rem 0; }
+    .highlighted { background: #fef3c7; border-left: 4px solid #f59e0b; }
+    .notification-banner { display: none; padding: 0.75rem 1rem; margin: 0.5rem 0; background: #eff6ff; border-left: 4px solid #3b82f6; }
+    button { padding: 0.5rem 1rem; font-size: 1rem; cursor: pointer; margin: 0.5rem 0; }
+  </style>
+</head>
+<body>
+  <h1>ValetJS Demo</h1>
+
+  <h2>Directive Communication</h2>
+  <div id="box" class="highlight">This box is controlled by the Highlight directive.</div>
+  <button class="highlight-toggle" data-target="#box">Toggle Highlight</button>
+
+  <h2>Event System</h2>
+  <div class="notification-banner"></div>
+  <button class="notification-sender" data-message="Item added to cart">Add to cart</button>
+  <button class="notification-sender" data-message="Settings saved">Save settings</button>
+
+  <h2>Lazy-loaded Component</h2>
+  <button class="spawner">Spawn User Card</button>
+  <div id="spawn-target"></div>
+
+  <h2>Native Web Component</h2>
+  <progress-bar value="65"></progress-bar>
+
+  <h2>Lit Web Component: MyCounter</h2>
+  <my-counter></my-counter>
+
+  <script type="module" src="/main.ts"></script>
+</body>
+</html>
