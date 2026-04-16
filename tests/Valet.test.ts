@@ -1,49 +1,72 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Valet } from '../src/Valet.js';
 import { Directive } from '../src/Directive.js';
-import { directiveRegistry, clearRegistry } from '../src/Registry.js';
-import { stopObserver } from '../src/Observer.js';
+import { directiveRegistry } from '../src/Registry.js';
 import type { DirectiveConstructor } from '../src/types.js';
 
 class TestDirective extends Directive {
   static override selector = '.test-el';
   initCalled = false;
+  destroyCalled = false;
 
   override onInit() {
     this.initCalled = true;
+  }
+
+  override onDestroy() {
+    this.destroyCalled = true;
   }
 }
 
 const TestCtor = TestDirective as unknown as DirectiveConstructor<TestDirective>;
 
+function flush(): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, 0));
+}
+
 describe('Valet', () => {
   beforeEach(() => {
-    clearRegistry();
-    stopObserver();
+    Valet.destroy();
     document.body.innerHTML = '';
   });
 
   describe('init', () => {
-    it('registers directives and scans the DOM', async () => {
+    it('registers directives and scans the DOM synchronously', () => {
       const el = document.createElement('div');
       el.classList.add('test-el');
       document.body.appendChild(el);
 
-      await Valet.init({ directives: [TestCtor] });
+      Valet.init({ directives: [TestCtor] });
 
       expect(el.directives).toBeDefined();
       expect(el.directives!.has(TestCtor)).toBe(true);
     });
 
-    it('re-init clears previous state', async () => {
-      await Valet.init({ directives: [TestCtor] });
-      expect(directiveRegistry.size).toBe(1);
+    it('re-init destroys previous directives and clears state', () => {
+      const el = document.createElement('div');
+      el.classList.add('test-el');
+      document.body.appendChild(el);
 
-      await Valet.init({});
+      Valet.init({ directives: [TestCtor] });
+      const instance = el.directives!.get(TestCtor) as TestDirective;
+
+      Valet.init({});
+
+      expect(instance.destroyCalled).toBe(true);
       expect(directiveRegistry.size).toBe(0);
     });
 
-    it('lazy import resolves and registers directives', async () => {
+    it('re-init clears event listeners', () => {
+      const handler = vi.fn();
+      Valet.on('test', handler);
+
+      Valet.init({});
+      Valet.emit('test');
+
+      expect(handler).not.toHaveBeenCalled();
+    });
+
+    it('lazy import resolves progressively and scans', async () => {
       const el = document.createElement('div');
       el.classList.add('lazy-sel');
       document.body.appendChild(el);
@@ -52,11 +75,17 @@ describe('Valet', () => {
         static override selector = '.lazy-sel';
       }
 
-      await Valet.init({
+      Valet.init({
         lazy: {
           '.lazy-sel': Promise.resolve({ default: LazyDirective }),
         },
       });
+
+      // Eager scan happens synchronously — lazy hasn't resolved yet
+      expect(el.directives).toBeUndefined();
+
+      // Flush microtask — lazy resolves and scans
+      await flush();
 
       expect(directiveRegistry.has('.lazy-sel')).toBe(true);
       expect(el.directives).toBeDefined();
@@ -65,26 +94,122 @@ describe('Valet', () => {
     it('lazy import uses key as selector when directive has none', async () => {
       class NoSelDirective extends Directive {}
 
-      await Valet.init({
+      Valet.init({
         lazy: {
           '.auto-sel': Promise.resolve({ default: NoSelDirective }),
         },
       });
 
+      await flush();
+
       expect(directiveRegistry.has('.auto-sel')).toBe(true);
       expect(NoSelDirective.selector).toBe('.auto-sel');
     });
 
-    it('lazy import skips non-directive exports', async () => {
+    it('lazy import skips component classes silently', async () => {
       class FakeComponent {}
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-      await Valet.init({
+      Valet.init({
         lazy: {
           'my-comp': Promise.resolve({ default: FakeComponent }),
         },
       });
 
+      await flush();
+
       expect(directiveRegistry.size).toBe(0);
+      expect(warnSpy).not.toHaveBeenCalled();
+      warnSpy.mockRestore();
+    });
+
+    it('lazy import warns on non-function exports', async () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      Valet.init({
+        lazy: {
+          '.broken': Promise.resolve({ default: 'not a class' }),
+        },
+      });
+
+      await flush();
+
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('.broken'),
+      );
+      warnSpy.mockRestore();
+    });
+
+    it('eager directives mount before lazy ones resolve', async () => {
+      const order: string[] = [];
+
+      class EagerDirective extends Directive {
+        static override selector = '.eager';
+        override onInit() { order.push('eager'); }
+      }
+      class LazyDirective extends Directive {
+        static override selector = '.lazy';
+        override onInit() { order.push('lazy'); }
+      }
+
+      const eager = document.createElement('div');
+      eager.classList.add('eager');
+      const lazy = document.createElement('div');
+      lazy.classList.add('lazy');
+      document.body.append(eager, lazy);
+
+      Valet.init({
+        directives: [EagerDirective as unknown as DirectiveConstructor],
+        lazy: {
+          '.lazy': Promise.resolve({ default: LazyDirective }),
+        },
+      });
+
+      expect(order).toEqual(['eager']);
+
+      await flush();
+
+      expect(order).toEqual(['eager', 'lazy']);
+    });
+  });
+
+  describe('destroy', () => {
+    it('calls onDestroy on all mounted directives', () => {
+      const el = document.createElement('div');
+      el.classList.add('test-el');
+      document.body.appendChild(el);
+
+      Valet.init({ directives: [TestCtor] });
+      const instance = el.directives!.get(TestCtor) as TestDirective;
+
+      Valet.destroy();
+
+      expect(instance.destroyCalled).toBe(true);
+    });
+
+    it('clears the directive registry', () => {
+      Valet.init({ directives: [TestCtor] });
+
+      Valet.destroy();
+
+      expect(directiveRegistry.size).toBe(0);
+    });
+
+    it('clears event listeners', () => {
+      const handler = vi.fn();
+      Valet.on('test', handler);
+
+      Valet.destroy();
+      Valet.emit('test');
+
+      expect(handler).not.toHaveBeenCalled();
+    });
+
+    it('is safe to call multiple times', () => {
+      expect(() => {
+        Valet.destroy();
+        Valet.destroy();
+      }).not.toThrow();
     });
   });
 
@@ -94,7 +219,7 @@ describe('Valet', () => {
       el.classList.add('test-el');
       document.body.appendChild(el);
 
-      await Valet.init({ directives: [TestCtor] });
+      Valet.init({ directives: [TestCtor] });
 
       const instance = await Valet.getDirective(el, TestCtor);
       expect(instance).toBeInstanceOf(TestDirective);
@@ -119,7 +244,7 @@ describe('Valet', () => {
   });
 
   describe('getChildDirectives', () => {
-    it('returns directive instances from descendants', async () => {
+    it('returns directive instances from descendants', () => {
       const wrapper = document.createElement('div');
       const child1 = document.createElement('span');
       child1.classList.add('test-el');
@@ -129,14 +254,14 @@ describe('Valet', () => {
       wrapper.appendChild(child2);
       document.body.appendChild(wrapper);
 
-      await Valet.init({ directives: [TestCtor] });
+      Valet.init({ directives: [TestCtor] });
 
       const directives = Valet.getChildDirectives(wrapper);
       expect(directives.length).toBe(2);
       expect(directives.every((d) => d instanceof TestDirective)).toBe(true);
     });
 
-    it('excludes the node itself', async () => {
+    it('excludes the node itself', () => {
       const wrapper = document.createElement('div');
       wrapper.classList.add('test-el');
       const child = document.createElement('span');
@@ -144,7 +269,7 @@ describe('Valet', () => {
       wrapper.appendChild(child);
       document.body.appendChild(wrapper);
 
-      await Valet.init({ directives: [TestCtor] });
+      Valet.init({ directives: [TestCtor] });
 
       const directives = Valet.getChildDirectives(wrapper);
       expect(directives.length).toBe(1);
@@ -154,8 +279,7 @@ describe('Valet', () => {
       const wrapper = document.createElement('div');
       document.body.appendChild(wrapper);
 
-      const directives = Valet.getChildDirectives(wrapper);
-      expect(directives).toEqual([]);
+      expect(Valet.getChildDirectives(wrapper)).toEqual([]);
     });
   });
 

@@ -1,8 +1,6 @@
 import type { DirectiveConstructor } from './types.js';
-import type { WebComponent } from './WebComponent.js';
 
 export const directiveRegistry = new Map<string, DirectiveConstructor>();
-export const componentInstances = new Set<WebComponent>();
 
 export function registerDirective(DirectiveClass: DirectiveConstructor): void {
   const selector = DirectiveClass.selector;
@@ -15,15 +13,6 @@ export function registerDirective(DirectiveClass: DirectiveConstructor): void {
   directiveRegistry.set(selector, DirectiveClass);
 }
 
-export function trackComponent(component: WebComponent): void {
-  componentInstances.add(component);
-}
-
-export function untrackComponent(component: WebComponent): void {
-  componentInstances.delete(component);
-}
-
 export function clearRegistry(): void {
   directiveRegistry.clear();
-  componentInstances.clear();
 }

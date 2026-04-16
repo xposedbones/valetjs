@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { WebComponent } from '../src/WebComponent.js';
-import { componentInstances, clearRegistry } from '../src/Registry.js';
 import { Valet } from '../src/Valet.js';
 
 function uniqueTag() {
@@ -9,7 +8,6 @@ function uniqueTag() {
 
 describe('WebComponent', () => {
   beforeEach(() => {
-    clearRegistry();
     document.body.innerHTML = '';
   });
 
@@ -53,39 +51,25 @@ describe('WebComponent', () => {
     }).not.toThrow();
   });
 
-  describe('component tracking', () => {
-    it('tracks in componentInstances on connect', () => {
-      class TestComp extends WebComponent {}
-      customElements.define(uniqueTag(), TestComp);
+  it('sets valet-component attribute on connect', () => {
+    class TestComp extends WebComponent {}
+    customElements.define(uniqueTag(), TestComp);
 
-      const el = new TestComp();
-      document.body.appendChild(el);
+    const el = new TestComp();
+    document.body.appendChild(el);
 
-      expect(componentInstances.has(el)).toBe(true);
-    });
+    expect(el.hasAttribute('valet-component')).toBe(true);
+  });
 
-    it('untracks on disconnect', () => {
-      class TestComp extends WebComponent {}
-      customElements.define(uniqueTag(), TestComp);
+  it('removes valet-component attribute on disconnect', () => {
+    class TestComp extends WebComponent {}
+    customElements.define(uniqueTag(), TestComp);
 
-      const el = new TestComp();
-      document.body.appendChild(el);
-      document.body.removeChild(el);
+    const el = new TestComp();
+    document.body.appendChild(el);
+    document.body.removeChild(el);
 
-      expect(componentInstances.has(el)).toBe(false);
-    });
-
-    it('clearRegistry clears componentInstances', () => {
-      class TestComp extends WebComponent {}
-      customElements.define(uniqueTag(), TestComp);
-
-      const el = new TestComp();
-      document.body.appendChild(el);
-      expect(componentInstances.size).toBeGreaterThan(0);
-
-      clearRegistry();
-      expect(componentInstances.size).toBe(0);
-    });
+    expect(el.hasAttribute('valet-component')).toBe(false);
   });
 
   describe('getChildComponents', () => {
@@ -108,6 +92,8 @@ describe('WebComponent', () => {
       customElements.define(uniqueTag(), TestComp);
 
       const comp = new TestComp();
+      const child = document.createElement('div');
+      comp.appendChild(child);
       document.body.appendChild(comp);
 
       const result = Valet.getChildComponents(comp);
@@ -119,6 +105,22 @@ describe('WebComponent', () => {
       document.body.appendChild(wrapper);
 
       expect(Valet.getChildComponents(wrapper)).toEqual([]);
+    });
+
+    it('finds nested components', () => {
+      class TestComp extends WebComponent {}
+      customElements.define(uniqueTag(), TestComp);
+
+      const wrapper = document.createElement('div');
+      const inner = document.createElement('div');
+      const comp = new TestComp();
+      inner.appendChild(comp);
+      wrapper.appendChild(inner);
+      document.body.appendChild(wrapper);
+
+      const result = Valet.getChildComponents(wrapper);
+      expect(result.length).toBe(1);
+      expect(result[0]).toBe(comp);
     });
   });
 });

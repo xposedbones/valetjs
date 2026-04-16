@@ -1,16 +1,17 @@
 import { LitElement } from 'lit';
-import { trackComponent, untrackComponent } from './Registry.js';
+
+const COMPONENT_ATTR = 'valet-component';
 
 export class WebComponent extends LitElement {
   override connectedCallback(): void {
     super.connectedCallback();
-    trackComponent(this);
+    this.setAttribute(COMPONENT_ATTR, '');
     this.onInit();
   }
 
   override disconnectedCallback(): void {
     super.disconnectedCallback();
-    untrackComponent(this);
+    this.removeAttribute(COMPONENT_ATTR);
     this.onDestroy();
   }
 

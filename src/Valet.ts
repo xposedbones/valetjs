@@ -1,9 +1,9 @@
 import type { ValetOptions, DirectiveConstructor, EventHandler } from './types.js';
 import { Directive } from './Directive.js';
 import type { WebComponent } from './WebComponent.js';
-import { clearRegistry, registerDirective, componentInstances } from './Registry.js';
-import { scanDirectives } from './Scanner.js';
-import { startObserver } from './Observer.js';
+import { clearRegistry, registerDirective } from './Registry.js';
+import { scanDirectives, destroyDirectivesIn } from './Scanner.js';
+import { startObserver, stopObserver } from './Observer.js';
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -34,8 +34,32 @@ export class Valet {
     }
   }
 
-  static async init(options: ValetOptions = {}): Promise<void> {
+  static destroy(): void {
+    stopObserver();
+    destroyDirectivesIn(document.body);
     clearRegistry();
+    this.listeners.clear();
+  }
+
+  private static resolveLazyImport(key: string, mod: { default: unknown }): void {
+    const Exported = mod.default;
+
+    if (typeof Exported === 'function' && Exported.prototype instanceof Directive) {
+      const DirectiveClass = Exported as unknown as DirectiveConstructor;
+      if (!DirectiveClass.selector) {
+        DirectiveClass.selector = key;
+      }
+      registerDirective(DirectiveClass);
+      scanDirectives(document);
+    } else if (typeof Exported === 'function') {
+      // Components self-register via @customElement — nothing to do
+    } else {
+      console.warn(`[Valet] Lazy export for "${key}" is not a Directive or Component class. Skipping.`);
+    }
+  }
+
+  static init(options: ValetOptions = {}): void {
+    this.destroy();
 
     if (options.directives) {
       for (const DirectiveClass of options.directives) {
@@ -43,25 +67,14 @@ export class Valet {
       }
     }
 
-    if (options.lazy) {
-      const entries = Object.entries(options.lazy);
-      const modules = await Promise.all(entries.map(([, p]) => p));
-
-      for (const [i, [key]] of entries.entries()) {
-        const Exported = modules[i].default;
-
-        if (typeof Exported === 'function' && Exported.prototype instanceof Directive) {
-          const DirectiveClass = Exported as unknown as DirectiveConstructor;
-          if (!DirectiveClass.selector) {
-            DirectiveClass.selector = key;
-          }
-          registerDirective(DirectiveClass);
-        }
-      }
-    }
-
     scanDirectives(document);
     startObserver(document.body);
+
+    if (options.lazy) {
+      for (const [key, promise] of Object.entries(options.lazy)) {
+        promise.then((mod) => this.resolveLazyImport(key, mod));
+      }
+    }
   }
 
   static async getDirective<T extends Directive>(
@@ -85,12 +98,11 @@ export class Valet {
   }
 
   static getChildComponents(node: Element): WebComponent[] {
+    const elements = node.querySelectorAll('[valet-component]');
     const result: WebComponent[] = [];
 
-    for (const component of componentInstances) {
-      if (node !== component && node.contains(component)) {
-        result.push(component);
-      }
+    for (const el of elements) {
+      result.push(el as unknown as WebComponent);
     }
 
     return result;

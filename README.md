@@ -22,7 +22,7 @@ Valet.init({
 });
 ```
 
-**`directives`** registers classes immediately. **`lazy`** accepts dynamic `import()` promises — Valet detects whether each export is a directive (registered automatically) or a component (the `@customElement` decorator handles it).
+`init()` is synchronous — eager directives mount instantly and the MutationObserver starts watching right away. Lazy imports resolve progressively in the background: each one registers and scans the DOM as it lands, without blocking the others.
 
 ## Directives
 
