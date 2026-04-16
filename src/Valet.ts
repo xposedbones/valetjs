@@ -1,6 +1,7 @@
 import type { ValetOptions, DirectiveConstructor, EventHandler } from './types.js';
 import { Directive } from './Directive.js';
-import { clearRegistry, registerDirective } from './Registry.js';
+import type { WebComponent } from './WebComponent.js';
+import { clearRegistry, registerDirective, componentInstances } from './Registry.js';
 import { scanDirectives } from './Scanner.js';
 import { startObserver } from './Observer.js';
 
@@ -81,6 +82,18 @@ export class Valet {
     throw new Error(
       `Directive ${DirectiveClass.name} not found on <${node.tagName.toLowerCase()}> after ${retries} retries.`,
     );
+  }
+
+  static getChildComponents(node: Element): WebComponent[] {
+    const result: WebComponent[] = [];
+
+    for (const component of componentInstances) {
+      if (node !== component && node.contains(component)) {
+        result.push(component);
+      }
+    }
+
+    return result;
   }
 
   static getChildDirectives(node: Element): Directive[] {
