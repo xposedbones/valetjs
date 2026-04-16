@@ -1,5 +1,7 @@
 # ValetJS
 
+[![npm version](https://img.shields.io/npm/v/valetjs.svg)](https://www.npmjs.com/package/valetjs)
+
 Lightweight directive and web component lifecycle management for the DOM, powered by MutationObserver. Supports lazy-loading, typed directive access, and cross-component events.
 
 ## Installation

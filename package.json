@@ -1,7 +1,29 @@
 {
   "name": "valetjs",
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "description": "Lightweight directive and web component lifecycle management for the DOM, powered by MutationObserver. Lazy-load directives and components only when their selectors appear on the page.",
+  "keywords": [
+    "directive",
+    "web-components",
+    "mutation-observer",
+    "lazy-loading",
+    "lit",
+    "dom",
+    "lifecycle",
+    "typescript"
+  ],
+  "author": "xposedbones",
+  "license": "MIT",
+  "homepage": "https://github.com/xposedbones/valetjs#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xposedbones/valetjs.git"
+  },
+  "bugs": {
+    "url": "https://github.com/xposedbones/valetjs/issues"
+  },
   "type": "module",
+  "sideEffects": false,
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -15,12 +37,16 @@
   "files": [
     "dist"
   ],
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "build": "tsup",
     "build:demo": "vite build",
     "dev": "vite demo",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "prepublishOnly": "npm test && npm run build"
   },
   "peerDependencies": {
     "lit": ">=3.0.0"
