@@ -3,3 +3,4 @@ dist
 demo-dist
 *.log
 .claude
+CLAUDE.md
