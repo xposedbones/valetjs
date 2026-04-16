@@ -225,8 +225,9 @@
   <section>
     <h2>Lazy-loaded Component</h2>
     <p style="color: #5c5f6a; font-size: 0.9rem; margin-bottom: 0.5rem;">
-      The <code>&lt;user-card&gt;</code> component is lazy-loaded. Clicking the button creates
-      a new element — the MutationObserver picks it up automatically.
+      The <code>&lt;user-card&gt;</code> module hasn't been fetched yet; its selector isn't on the page.
+      Open the Network tab, then click Spawn: <code>UserCard.ts</code> loads only once the element appears,
+      and the MutationObserver picks it up automatically.
     </p>
     <button class="spawner">Spawn User Card</button>
     <div id="spawn-target"></div>

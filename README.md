@@ -22,7 +22,7 @@ Valet.init({
 });
 ```
 
-`init()` is synchronous — eager directives mount instantly and the MutationObserver starts watching right away. Lazy entries are loader **functions**: Valet only invokes a loader when an element matching its selector is present in the DOM (at init time or later, via the observer). A directive or component whose selector never appears on the page is never fetched.
+`init()` is synchronous. Eager directives mount instantly and the MutationObserver starts watching right away. Lazy entries are loader **functions**: Valet only invokes a loader when an element matching its selector is present in the DOM (at init time or later, via the observer). The browser only downloads the directives and components the page actually uses.
 
 ## Directives
 
