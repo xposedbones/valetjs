@@ -66,7 +66,7 @@ describe('Valet', () => {
       expect(handler).not.toHaveBeenCalled();
     });
 
-    it('lazy import resolves progressively and scans', async () => {
+    it('lazy loader fires and scans when selector is present', async () => {
       const el = document.createElement('div');
       el.classList.add('lazy-sel');
       document.body.appendChild(el);
@@ -77,26 +77,92 @@ describe('Valet', () => {
 
       Valet.init({
         lazy: {
-          '.lazy-sel': Promise.resolve({ default: LazyDirective }),
+          '.lazy-sel': () => Promise.resolve({ default: LazyDirective }),
         },
       });
 
-      // Eager scan happens synchronously — lazy hasn't resolved yet
+      // Loader returns a resolved promise but resolveLazyImport runs in a microtask
       expect(el.directives).toBeUndefined();
 
-      // Flush microtask — lazy resolves and scans
       await flush();
 
       expect(directiveRegistry.has('.lazy-sel')).toBe(true);
       expect(el.directives).toBeDefined();
     });
 
+    it('lazy loader does NOT fire when selector is absent', async () => {
+      const loader = vi.fn(() => Promise.resolve({ default: class extends Directive {} }));
+
+      Valet.init({
+        lazy: {
+          '.never-present': loader,
+        },
+      });
+
+      await flush();
+
+      expect(loader).not.toHaveBeenCalled();
+      expect(directiveRegistry.has('.never-present')).toBe(false);
+    });
+
+    it('lazy loader fires when a matching element is added later', async () => {
+      const loader = vi.fn(() => Promise.resolve({ default: class extends Directive {
+        static override selector = '.added-later';
+      }}));
+
+      Valet.init({
+        lazy: {
+          '.added-later': loader,
+        },
+      });
+
+      await flush();
+      expect(loader).not.toHaveBeenCalled();
+
+      const el = document.createElement('div');
+      el.classList.add('added-later');
+      document.body.appendChild(el);
+
+      // Let MutationObserver flush
+      await flush();
+      await flush();
+
+      expect(loader).toHaveBeenCalledTimes(1);
+    });
+
+    it('lazy loader fires only once per selector', async () => {
+      const loader = vi.fn(() => Promise.resolve({ default: class extends Directive {
+        static override selector = '.once';
+      }}));
+
+      const a = document.createElement('div');
+      a.classList.add('once');
+      const b = document.createElement('div');
+      b.classList.add('once');
+      document.body.append(a, b);
+
+      Valet.init({
+        lazy: {
+          '.once': loader,
+        },
+      });
+
+      await flush();
+      await flush();
+
+      expect(loader).toHaveBeenCalledTimes(1);
+    });
+
     it('lazy import uses key as selector when directive has none', async () => {
+      const el = document.createElement('div');
+      el.classList.add('auto-sel');
+      document.body.appendChild(el);
+
       class NoSelDirective extends Directive {}
 
       Valet.init({
         lazy: {
-          '.auto-sel': Promise.resolve({ default: NoSelDirective }),
+          '.auto-sel': () => Promise.resolve({ default: NoSelDirective }),
         },
       });
 
@@ -107,12 +173,15 @@ describe('Valet', () => {
     });
 
     it('lazy import skips component classes silently', async () => {
+      const el = document.createElement('my-comp');
+      document.body.appendChild(el);
+
       class FakeComponent {}
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
       Valet.init({
         lazy: {
-          'my-comp': Promise.resolve({ default: FakeComponent }),
+          'my-comp': () => Promise.resolve({ default: FakeComponent }),
         },
       });
 
@@ -124,11 +193,15 @@ describe('Valet', () => {
     });
 
     it('lazy import warns on non-function exports', async () => {
+      const el = document.createElement('div');
+      el.classList.add('broken');
+      document.body.appendChild(el);
+
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
       Valet.init({
         lazy: {
-          '.broken': Promise.resolve({ default: 'not a class' }),
+          '.broken': () => Promise.resolve({ default: 'not a class' }),
         },
       });
 
@@ -161,7 +234,7 @@ describe('Valet', () => {
       Valet.init({
         directives: [EagerDirective as unknown as DirectiveConstructor],
         lazy: {
-          '.lazy': Promise.resolve({ default: LazyDirective }),
+          '.lazy': () => Promise.resolve({ default: LazyDirective }),
         },
       });
 

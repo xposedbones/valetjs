@@ -16,13 +16,13 @@ import { Valet } from 'valetjs';
 Valet.init({
   directives: [Carousel],
   lazy: {
-    '.js-highlight': import('./directives/Highlight.js'),
-    'my-counter':    import('./components/MyCounter.js'),
+    '.js-highlight': () => import('./directives/Highlight.js'),
+    'my-counter':    () => import('./components/MyCounter.js'),
   },
 });
 ```
 
-`init()` is synchronous — eager directives mount instantly and the MutationObserver starts watching right away. Lazy imports resolve progressively in the background: each one registers and scans the DOM as it lands, without blocking the others.
+`init()` is synchronous — eager directives mount instantly and the MutationObserver starts watching right away. Lazy entries are loader **functions**: Valet only invokes a loader when an element matching its selector is present in the DOM (at init time or later, via the observer). A directive or component whose selector never appears on the page is never fetched.
 
 ## Directives
 

@@ -4,7 +4,6 @@ export default class NotificationBanner extends Directive {
   static selector = '.notification-banner';
 
   onInit(): void {
-    console.log(Valet);
     Valet.on('notification', this.handleNotification);
   }
 

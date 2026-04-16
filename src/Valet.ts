@@ -1,9 +1,10 @@
 import type { ValetOptions, DirectiveConstructor, EventHandler } from './types.js';
-import { Directive } from './Directive.js';
+import type { Directive } from './Directive.js';
 import type { WebComponent } from './WebComponent.js';
 import { clearRegistry, registerDirective } from './Registry.js';
 import { scanDirectives, destroyDirectivesIn } from './Scanner.js';
 import { startObserver, stopObserver } from './Observer.js';
+import { registerLazy, checkLazy, clearLazy } from './Lazy.js';
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -38,24 +39,8 @@ export class Valet {
     stopObserver();
     destroyDirectivesIn(document.body);
     clearRegistry();
+    clearLazy();
     this.listeners.clear();
-  }
-
-  private static resolveLazyImport(key: string, mod: { default: unknown }): void {
-    const Exported = mod.default;
-
-    if (typeof Exported === 'function' && Exported.prototype instanceof Directive) {
-      const DirectiveClass = Exported as unknown as DirectiveConstructor;
-      if (!DirectiveClass.selector) {
-        DirectiveClass.selector = key;
-      }
-      registerDirective(DirectiveClass);
-      scanDirectives(document);
-    } else if (typeof Exported === 'function') {
-      // Components self-register via @customElement — nothing to do
-    } else {
-      console.warn(`[Valet] Lazy export for "${key}" is not a Directive or Component class. Skipping.`);
-    }
   }
 
   static init(options: ValetOptions = {}): void {
@@ -67,14 +52,15 @@ export class Valet {
       }
     }
 
-    scanDirectives(document);
-    startObserver(document.body);
-
     if (options.lazy) {
-      for (const [key, promise] of Object.entries(options.lazy)) {
-        promise.then((mod) => this.resolveLazyImport(key, mod));
+      for (const [selector, loader] of Object.entries(options.lazy)) {
+        registerLazy(selector, loader);
       }
     }
+
+    scanDirectives(document);
+    checkLazy(document);
+    startObserver(document.body);
   }
 
   static async getDirective<T extends Directive>(

@@ -1,4 +1,5 @@
 import { scanDirectives, destroyDirectivesIn } from './Scanner.js';
+import { checkLazy } from './Lazy.js';
 
 let observer: MutationObserver | null = null;
 
@@ -19,6 +20,7 @@ function handleMutations(mutations: MutationRecord[]): void {
     destroyDirectivesIn(node);
   }
   for (const node of added) {
+    checkLazy(node);
     scanDirectives(node);
   }
 }
