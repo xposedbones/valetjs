@@ -85,6 +85,24 @@ The same `onInit()` and `onDestroy()` hooks are available, mirroring the directi
 
 Native web components (`HTMLElement` subclasses) work alongside Valet without any wrapper. We recommend Lit via `WebComponent` for reactive properties, declarative templates, and scoped styles.
 
+### TypeScript configuration
+
+Lit's `@customElement` and `@property` decorators need two compiler flags to work correctly. Add these to your `tsconfig.json`:
+
+```json
+{
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "useDefineForClassFields": false,
+    "erasableSyntaxOnly": false
+  }
+}
+```
+
+`experimentalDecorators` enables the legacy decorator syntax Lit uses. `useDefineForClassFields: false` is the subtle one: when left at its ES2022 default (`true`), class field initializers run with `Object.defineProperty` and overwrite the reactive property accessors Lit installs, so `@property` values stop triggering re-renders. Setting it to `false` lets the decorators install accessors that the field initializers then assign through. `erasableSyntaxOnly` (TS 5.8+, on by default in some newer presets) disallows syntax with runtime effects, including decorators. If your preset enables it, turn it off for projects that use Lit.
+
+If you target ES2022+ without these flags, Lit will appear to work until a `@property` value changes and nothing updates.
+
 ## Accessing Directives
 
 ### On a specific element
