@@ -23,6 +23,10 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['valetjs'],
   },
+  build: {
+    outDir: resolve(root, 'demo-dist'),
+    emptyOutDir: true,
+  },
   server: {
     port: 3000,
   },
