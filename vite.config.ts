@@ -17,8 +17,11 @@ function valetAlias(): Plugin {
   };
 }
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 export default defineConfig({
   root: 'demo',
+  base: isProduction ? '/valetjs/' : '/',
   plugins: [valetAlias()],
   optimizeDeps: {
     exclude: ['valetjs'],
