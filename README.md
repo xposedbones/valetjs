@@ -4,7 +4,7 @@
 
 Lightweight directive and web component lifecycle management for the DOM, powered by MutationObserver. Supports lazy-loading, typed directive access, and cross-component events.
 
-Most DOM frameworks ship every component's code in your bundle, then gate initialization on whether the element exists. ValetJS gates loading instead: components are fetched via dynamic imports only when their selector matches an element on the page. Directives for behavior, Lit for components, MutationObserver for dynamic content. 
+Most DOM frameworks ship every component's code in your bundle, then gate initialization on whether the element exists. ValetJS gates loading instead: components are fetched via dynamic imports only when their selector matches an element on the page. Directives for behavior, Lit for components, MutationObserver for dynamic content. [See it in action!](https://xposedbones.github.io/valetjs/)
 
 ## Installation
 
