@@ -22,37 +22,40 @@ function chunkSizesManifest(): Plugin {
   return {
     name: 'chunk-sizes-manifest',
     apply: 'build',
-    generateBundle(_opts, bundle) {
-      const eager = new Set<string>();
-      const queue: string[] = [];
-      for (const [fileName, chunk] of Object.entries(bundle)) {
-        if (chunk.type === 'chunk' && chunk.isEntry) {
-          eager.add(fileName);
-          queue.push(fileName);
-        }
-      }
-      while (queue.length) {
-        const f = queue.shift()!;
-        const chunk = bundle[f];
-        if (chunk?.type !== 'chunk') continue;
-        for (const imp of chunk.imports) {
-          if (!eager.has(imp)) { eager.add(imp); queue.push(imp); }
-        }
-      }
+    transformIndexHtml: {
+      order: 'post',
+      handler(html, ctx) {
+        if (!ctx.bundle) return html;
 
-      const sizes: Record<string, { gzip: number; raw: number; dynamic: boolean }> = {};
-      for (const [fileName, chunk] of Object.entries(bundle)) {
-        if (chunk.type === 'chunk' && fileName.endsWith('.js')) {
-          const raw = Buffer.byteLength(chunk.code);
-          const gzip = gzipSync(chunk.code).length;
-          sizes[fileName] = { gzip, raw, dynamic: !eager.has(fileName) };
+        const eager = new Set<string>();
+        const queue: string[] = [];
+        for (const [fileName, chunk] of Object.entries(ctx.bundle)) {
+          if (chunk.type === 'chunk' && chunk.isEntry) {
+            eager.add(fileName);
+            queue.push(fileName);
+          }
         }
-      }
-      this.emitFile({
-        type: 'asset',
-        fileName: 'chunk-sizes.json',
-        source: JSON.stringify(sizes),
-      });
+        while (queue.length) {
+          const f = queue.shift()!;
+          const chunk = ctx.bundle[f];
+          if (chunk?.type !== 'chunk') continue;
+          for (const imp of chunk.imports) {
+            if (!eager.has(imp)) { eager.add(imp); queue.push(imp); }
+          }
+        }
+
+        const sizes: Record<string, { gzip: number; raw: number; dynamic: boolean }> = {};
+        for (const [fileName, chunk] of Object.entries(ctx.bundle)) {
+          if (chunk.type === 'chunk' && fileName.endsWith('.js')) {
+            const raw = Buffer.byteLength(chunk.code);
+            const gzip = gzipSync(chunk.code).length;
+            sizes[fileName] = { gzip, raw, dynamic: !eager.has(fileName) };
+          }
+        }
+
+        const tag = `<script id="chunk-sizes" type="application/json">${JSON.stringify(sizes)}</script>`;
+        return html.replace('</head>', `  ${tag}\n</head>`);
+      },
     },
   };
 }

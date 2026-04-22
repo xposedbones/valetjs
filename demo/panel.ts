@@ -2,6 +2,7 @@ import { getResources, subscribe, hasManifest, type ResourceEntry } from './metr
 
 let rowsEl: HTMLElement;
 let countSub: HTMLElement;
+let lastRenderedCount = 0;
 
 function formatBytes(bytes: number): string {
   if (!bytes) return '—';
@@ -18,10 +19,17 @@ function formatRelative(at: number): string {
 
 function render() {
   const entries = getResources();
+  const hasNew = entries.length > lastRenderedCount;
+  lastRenderedCount = entries.length;
+
   countSub.textContent = `${entries.length}`;
   rowsEl.textContent = '';
   for (const e of entries) {
     rowsEl.appendChild(buildRow(e));
+  }
+
+  if (hasNew) {
+    rowsEl.scrollTop = rowsEl.scrollHeight;
   }
 }
 

@@ -12,16 +12,13 @@ const resources: ResourceEntry[] = [];
 const seen = new Set<string>();
 const subscribers = new Set<() => void>();
 
-async function loadManifest() {
+function loadManifest() {
+  const el = document.getElementById('chunk-sizes');
+  if (!el?.textContent) return;
   try {
-    const url = new URL('chunk-sizes.json', document.baseURI);
-    const res = await fetch(url);
-    if (!res.ok) return;
-    const text = await res.text();
-    if (!text.trim().startsWith('{')) return;
-    manifest = JSON.parse(text);
+    manifest = JSON.parse(el.textContent);
   } catch {
-    // dev mode: no manifest, everything falls back to performance entries
+    // malformed manifest; stay in fallback mode
   }
 }
 
@@ -121,8 +118,8 @@ export function hasManifest(): boolean {
   return manifest !== null;
 }
 
-export async function startMetrics() {
-  await loadManifest();
+export function startMetrics() {
+  loadManifest();
 
   for (const e of performance.getEntriesByType('resource') as PerformanceResourceTiming[]) {
     addResource(e);
