@@ -314,6 +314,19 @@ describe('Valet', () => {
         Valet.getDirective(el, TestCtor, 1, 10),
       ).rejects.toThrow(/TestDirective.*<span>/i);
     });
+
+    it('resolves on a retry when the directive mounts after the first check', async () => {
+      const el = document.createElement('div');
+      el.classList.add('test-el');
+      Valet.init({ directives: [TestCtor] });
+
+      setTimeout(() => {
+        document.body.appendChild(el);
+      }, 15);
+
+      const instance = await Valet.getDirective(el, TestCtor, 10, 20);
+      expect(instance).toBeInstanceOf(TestDirective);
+    });
   });
 
   describe('getChildDirectives', () => {
