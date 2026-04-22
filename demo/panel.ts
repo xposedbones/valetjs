@@ -131,7 +131,7 @@ function mount() {
   if (!hasManifest()) {
     const footer = document.createElement('div');
     footer.className = 'valet-panel-footer';
-    footer.textContent = 'Dev mode — sizes include Vite transform overhead (prod is ~5x smaller gzipped)';
+    footer.textContent = 'Dev mode: sizes include Vite transform overhead (prod is ~5x smaller gzipped)';
     host.append(footer);
   }
 

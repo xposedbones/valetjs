@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ValetJS — lazy-load DOM components by selector</title>
+  <title>ValetJS: lazy-load DOM components by selector</title>
   <meta name="description" content="ValetJS gates loading instead of initialization: components are fetched via dynamic imports only when their selector matches an element on the page." />
   <meta property="og:title" content="ValetJS" />
   <meta property="og:description" content="Most DOM frameworks ship every component in your bundle. ValetJS fetches them only when their selector appears on the page." />
@@ -224,7 +224,7 @@
     <p>
       Most DOM frameworks ship every component in your bundle, then gate
       <em>initialization</em> on whether the element exists. ValetJS gates
-      <em>loading</em> instead — components are fetched via dynamic imports
+      <em>loading</em> instead. Components are fetched via dynamic imports
       only when their selector appears on the page.
     </p>
     <p style="margin-top: 0.75rem;">
@@ -288,7 +288,7 @@
   <section>
     <h2>Lazy-loaded Components</h2>
     <p style="color: #5c5f6a; font-size: 0.9rem; margin-bottom: 0.75rem;">
-      None of these component modules have been fetched yet — their selectors aren't on the page.
+      None of these component modules have been fetched yet. Their selectors aren't on the page.
       Click any button and watch the Network Activity panel: each file loads only when its element
       first appears, and the MutationObserver picks it up automatically.
     </p>
