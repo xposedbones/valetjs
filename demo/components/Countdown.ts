@@ -16,7 +16,7 @@ export default class Countdown extends WebComponent {
       color: #92400e;
       font-variant-numeric: tabular-nums;
     }
-    .count { font-size: 1.4rem; font-weight: 700; }
+    .count { font-weight: 700; }
     .done { color: #059669; }
   `;
 
@@ -40,7 +40,7 @@ export default class Countdown extends WebComponent {
 
   render() {
     return this.count > 0
-      ? html`<span class="count">${this.count}</span> seconds remaining`
+      ? html`<span class="count">${this.count}</span> seconds remaining, watch the console logs to see onDestroy in action`
       : html`<span class="count done">Done!</span>`;
   }
 }
