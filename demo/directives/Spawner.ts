@@ -14,12 +14,15 @@ export default class Spawner extends Directive {
 
   private handleClick = (): void => {
     this.count++;
-    const card = document.createElement('user-card');
-    card.setAttribute('name', `User #${this.count}`);
+    const tag = this.host.dataset.spawn || 'user-card';
+    const el = document.createElement(tag);
+    if (tag === 'user-card') {
+      el.setAttribute('name', `User #${this.count}`);
+    }
 
     const container = document.querySelector('#spawn-target');
     if (container) {
-      container.appendChild(card);
+      container.appendChild(el);
     }
   };
 }

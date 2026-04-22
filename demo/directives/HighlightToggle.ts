@@ -1,5 +1,4 @@
 import { Directive, Valet } from 'valetjs';
-import type { DirectiveConstructor } from 'valetjs';
 import Highlight from './Highlight.js';
 
 export default class HighlightToggle extends Directive {
