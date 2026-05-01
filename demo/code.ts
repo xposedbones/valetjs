@@ -79,7 +79,7 @@ function ensureStyles() {
   document.head.appendChild(style);
 }
 
-async function mountCodeBlocks() {
+export async function mountCodeBlocks() {
   ensureStyles();
   const blocks = Array.from(document.querySelectorAll<HTMLElement>('[data-code]'));
   if (blocks.length === 0) return;

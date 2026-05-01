@@ -154,7 +154,7 @@ function mount() {
   document.body.appendChild(host);
 }
 
-async function initPanel() {
+export async function initPanel() {
   if (!document.body) {
     await new Promise<void>(resolve =>
       document.addEventListener('DOMContentLoaded', () => resolve(), { once: true })
