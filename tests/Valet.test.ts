@@ -153,6 +153,55 @@ describe('Valet', () => {
       expect(loader).toHaveBeenCalledTimes(1);
     });
 
+    it('lazy import resolves a named export', async () => {
+      const el = document.createElement('div');
+      el.classList.add('named');
+      document.body.appendChild(el);
+
+      class Named extends Directive {
+        static override selector = '.named';
+      }
+
+      Valet.init({
+        lazy: {
+          '.named': () => Promise.resolve({ Named }),
+        },
+      });
+
+      await flush();
+
+      expect(directiveRegistry.has('.named')).toBe(true);
+      expect(el.directives?.get(Named)).toBeDefined();
+    });
+
+    it('lazy import registers multiple directives from one module', async () => {
+      const a = document.createElement('div');
+      a.classList.add('multi-a');
+      const b = document.createElement('div');
+      b.classList.add('multi-b');
+      document.body.append(a, b);
+
+      class A extends Directive {
+        static override selector = '.multi-a';
+      }
+      class B extends Directive {
+        static override selector = '.multi-b';
+      }
+
+      Valet.init({
+        lazy: {
+          '.multi-a': () => Promise.resolve({ A, B }),
+        },
+      });
+
+      await flush();
+
+      expect(directiveRegistry.has('.multi-a')).toBe(true);
+      expect(directiveRegistry.has('.multi-b')).toBe(true);
+      expect(a.directives?.get(A)).toBeDefined();
+      expect(b.directives?.get(B)).toBeDefined();
+    });
+
     it('lazy import uses key as selector when directive has none', async () => {
       const el = document.createElement('div');
       el.classList.add('auto-sel');

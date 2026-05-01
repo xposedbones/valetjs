@@ -3,7 +3,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { WebComponent } from 'valetjs';
 
 @customElement('countdown-timer')
-export default class Countdown extends WebComponent {
+class Countdown extends WebComponent {
   static styles = css`
     :host {
       display: block;

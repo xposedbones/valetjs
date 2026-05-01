@@ -6,8 +6,8 @@ export interface DirectiveConstructor<T extends Directive = Directive> {
   selector: string;
 }
 
-/** A function that returns a dynamic import — only invoked when its selector matches. */
-export type LazyLoader = () => Promise<{ default: unknown }>;
+/** A function that returns a dynamic import. Only invoked when its selector matches. */
+export type LazyLoader = () => Promise<Record<string, unknown>>;
 
 /** Options passed to `Valet.init()`. */
 export interface ValetOptions {

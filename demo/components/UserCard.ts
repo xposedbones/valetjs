@@ -3,7 +3,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { WebComponent } from 'valetjs';
 
 @customElement('user-card')
-export default class UserCard extends WebComponent {
+class UserCard extends WebComponent {
   static styles = css`
     :host {
       display: block;

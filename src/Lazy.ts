@@ -13,21 +13,36 @@ export function clearLazy(): void {
   lazyLoaders.clear();
 }
 
-function resolveLazyImport(key: string, mod: { default: unknown }): void {
-  const Exported = mod.default;
+function resolveLazyImport(key: string, mod: Record<string, unknown>): void {
+  const exports = Object.values(mod).filter(
+    (v): v is Function => typeof v === 'function',
+  );
 
-  if (typeof Exported === 'function' && Exported.prototype instanceof Directive) {
-    const DirectiveClass = Exported as unknown as DirectiveConstructor;
-    if (!DirectiveClass.selector) {
-      DirectiveClass.selector = key;
-    }
-    registerDirective(DirectiveClass);
-    scanDirectives(document);
-  } else if (typeof Exported === 'function') {
-    // Components self-register via @customElement — nothing to do
-  } else {
+  if (exports.length === 0) {
     console.warn(`[Valet] Lazy export for "${key}" is not a Directive or Component class. Skipping.`);
+    return;
   }
+
+  const directives = exports.filter(
+    (v) => v.prototype instanceof Directive,
+  ) as unknown as DirectiveConstructor[];
+
+  // Components self-register via @customElement — non-Directive function exports are no-ops.
+  if (directives.length === 0) return;
+
+  for (const D of directives) {
+    if (!D.selector) {
+      if (directives.length === 1) {
+        D.selector = key;
+      } else {
+        console.warn(`[Valet] Lazy directive "${D.name || 'anonymous'}" for "${key}" has no static selector. Skipping.`);
+        continue;
+      }
+    }
+    registerDirective(D);
+  }
+
+  scanDirectives(document);
 }
 
 export function checkLazy(root: Element | Document): void {

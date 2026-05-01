@@ -1,6 +1,6 @@
 import { Directive, Valet } from 'valetjs';
 
-export default class NotificationBanner extends Directive {
+class NotificationBanner extends Directive {
   static selector = '.notification-banner';
 
   onInit(): void {

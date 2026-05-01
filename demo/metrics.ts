@@ -105,20 +105,20 @@ function notify() {
   for (const fn of subscribers) fn();
 }
 
-export function getResources(): ReadonlyArray<ResourceEntry> {
+function getResources(): ReadonlyArray<ResourceEntry> {
   return resources;
 }
 
-export function subscribe(fn: () => void): () => void {
+function subscribe(fn: () => void): () => void {
   subscribers.add(fn);
   return () => { subscribers.delete(fn); };
 }
 
-export function hasManifest(): boolean {
+function hasManifest(): boolean {
   return manifest !== null;
 }
 
-export function startMetrics() {
+function startMetrics() {
   loadManifest();
 
   for (const e of performance.getEntriesByType('resource') as PerformanceResourceTiming[]) {

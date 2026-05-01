@@ -7,7 +7,7 @@ const QUOTES = [
   'Talk is cheap. Show me the code. — Linus Torvalds',
 ];
 
-export default class RandomQuote extends HTMLElement {
+class RandomQuote extends HTMLElement {
   connectedCallback() {
     const shadow = this.attachShadow({ mode: 'open' });
     shadow.innerHTML = `

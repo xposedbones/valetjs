@@ -3,7 +3,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { WebComponent } from 'valetjs';
 
 @customElement('my-counter')
-export default class MyCounter extends WebComponent {
+class MyCounter extends WebComponent {
   static styles = css`
     :host { display: block; }
     button {

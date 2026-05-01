@@ -1,4 +1,4 @@
-export default class ProgressBar extends HTMLElement {
+class ProgressBar extends HTMLElement {
   static observedAttributes = ['value'];
   static STEP = 10;
 

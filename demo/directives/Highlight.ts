@@ -1,6 +1,6 @@
 import { Directive } from 'valetjs';
 
-export default class Highlight extends Directive {
+class Highlight extends Directive {
   static selector = '.highlight';
 
   onInit(): void {
